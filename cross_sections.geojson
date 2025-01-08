@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "cross_sections",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "WSEL_REG": 658.8, "XS_LN_TYP": "LETTERED, MAPPED" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.747775200999968, 40.069863130000044 ], [ -80.747325596999985, 40.070255068000051 ], [ -80.747215626999946, 40.072610048000058 ], [ -80.747219145999964, 40.073034172000064 ] ] ] } },
+{ "type": "Feature", "properties": { "WSEL_REG": 658.8, "XS_LN_TYP": "LETTERED, MAPPED" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.746044170999937, 40.06993119100008 ], [ -80.745744600999956, 40.070239645000072 ], [ -80.745799586999965, 40.072275610000077 ], [ -80.74594459399998, 40.072444590000032 ] ] ] } },
+{ "type": "Feature", "properties": { "WSEL_REG": 658.8, "XS_LN_TYP": "LETTERED, MAPPED" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.744086660999983, 40.069635142000038 ], [ -80.743975683999963, 40.071990625000069 ] ] ] } },
+{ "type": "Feature", "properties": { "WSEL_REG": 658.8, "XS_LN_TYP": "LETTERED, MAPPED" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.741957655999954, 40.06976657000007 ], [ -80.741993194999964, 40.07172659500003 ] ] ] } }
+]
+}

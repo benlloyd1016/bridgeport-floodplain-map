@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "base_flood_elevations",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ELEV": 658.0, "LEN_UNIT": "Feet" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.749819214999945, 40.07043963700005 ], [ -80.749758192999934, 40.071426691000056 ] ] ] } },
+{ "type": "Feature", "properties": { "ELEV": 658.0, "LEN_UNIT": "Feet" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.736190234999981, 40.063093568000056 ], [ -80.736957681999968, 40.062907657000039 ] ] ] } },
+{ "type": "Feature", "properties": { "ELEV": 658.0, "LEN_UNIT": "Feet" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.741629084999943, 40.071643615000028 ], [ -80.741668144999949, 40.070039653000038 ] ] ] } },
+{ "type": "Feature", "properties": { "ELEV": 658.0, "LEN_UNIT": "Feet" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.738723246999939, 40.072651621000034 ], [ -80.741272686999935, 40.07257953800007 ] ] ] } },
+{ "type": "Feature", "properties": { "ELEV": 658.0, "LEN_UNIT": "Feet" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.738155623999944, 40.069640674000027 ], [ -80.741195740999956, 40.069511593000072 ] ] ] } },
+{ "type": "Feature", "properties": { "ELEV": 658.0, "LEN_UNIT": "Feet" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -80.735654127999965, 40.062167534000025 ], [ -80.736486618999947, 40.062097126000026 ] ] ] } }
+]
+}

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Village of Bridgeport Floodplain Management Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            color: #34495e;
+        }
+        .disclaimer {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 10px;
+        }
+        #map { 
+            height: 600px; 
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .legend {
+            line-height: 18px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Village of Bridgeport Floodplain Management Map</h1>
+            <p>Official floodplain mapping tool for the Village of Bridgeport, Ohio. Use this map to identify flood hazard areas, base flood elevations, and floodway boundaries.</p>
+            <p class="disclaimer">This map is for general reference only. For official determinations, please contact the Village Floodplain Administrator at (740) 650-5441.</p>
+        </div>
+        <div id="map"></div>
+        <div class="legend">
+            <h3>How to Use This Map:</h3>
+            <ul>
+                <li>Use the search box to find addresses in Bridgeport</li>
+                <li>Toggle between street map and aerial imagery using the layers control</li>
+                <li>Click on flood zones or elevations for more information</li>
+                <li>Use the print button to print the current view</li>
+            </ul>
+            <p class="disclaimer">Data Sources: FEMA National Flood Hazard Layer (NFHL), OpenStreetMap, Ohio OSIP Imagery</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        // Initialize map centered on Bridgeport
+        var map = L.map('map').setView([40.0695, -80.7445], 15);
+
+        // Add OpenStreetMap base layer
+        var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add aerial imagery
+        var aerial = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: 'Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+        });
+
+        // Initialize layer groups
+        var floodZones = L.layerGroup();
+        var bfe = L.layerGroup();
+        var crossSections = L.layerGroup();
+
+        // Load and style flood zones
+        fetch('flood_zones.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    filter: function(feature) {
+                        // Only show zones that are not X
+                        return feature.properties.FLD_ZONE !== 'X';
+                    },
+                    style: function(feature) {
+                        // Style based on flood zone
+                        const zone = feature.properties.FLD_ZONE;
+                        switch(zone) {
+                            case 'AE':
+                                return {
+                                    color: '#1E90FF',
+                                    weight: 1,
+                                    fillColor: '#1E90FF',
+                                    fillOpacity: 0.3
+                                };
+                            default:
+                                return {
+                                    color: '#FF6B6B',
+                                    weight: 1,
+                                    fillColor: '#FF6B6B',
+                                    fillOpacity: 0.3
+                                };
+                        }
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(`
+                            <h4>Flood Zone Information</h4>
+                            <p><strong>Zone:</strong> ${feature.properties.FLD_ZONE}</p>
+                            <p><strong>SFHA:</strong> ${feature.properties.SFHA_TF}</p>
+                        `);
+                    }
+                }).addTo(floodZones);
+            });
+
+        // Load and style BFE lines
+        fetch('base_flood_elevations.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: {
+                        color: '#FF4500',
+                        weight: 2,
+                        dashArray: '5, 5'
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(`
+                            <h4>Base Flood Elevation</h4>
+                            <p><strong>Elevation:</strong> ${feature.properties.ELEV} ${feature.properties.LEN_UNIT}</p>
+                        `);
+                    }
+                }).addTo(bfe);
+            });
+
+        // Load and style cross sections
+        fetch('cross_sections.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: {
+                        color: '#800080',
+                        weight: 2
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(`
+                            <h4>Cross Section</h4>
+                            <p><strong>Water Surface Elevation:</strong> ${feature.properties.WSEL_REG}</p>
+                            <p><strong>Type:</strong> ${feature.properties.XS_LN_TYP}</p>
+                        `);
+                    }
+                }).addTo(crossSections);
+            });
+
+        // Add all layers to map initially
+        floodZones.addTo(map);
+        bfe.addTo(map);
+        crossSections.addTo(map);
+
+        // Add layer control
+        var baseMaps = {
+            "Street Map": streets,
+            "Aerial Imagery": aerial
+        };
+
+        var overlayMaps = {
+            "Flood Zones": floodZones,
+            "Base Flood Elevations": bfe,
+            "Cross Sections": crossSections
+        };
+
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+        // Add search control with Nominatim geocoding
+        var searchControl = L.Control.extend({
+            options: {
+                position: 'topleft'
+            },
+            onAdd: function (map) {
+                var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                var wrapper = L.DomUtil.create('div', '', container);
+                wrapper.style.backgroundColor = 'white';
+                wrapper.style.padding = '5px';
+                wrapper.style.position = 'relative';
+                
+                var input = L.DomUtil.create('input', '', wrapper);
+                input.type = 'text';
+                input.placeholder = 'Search address in Bridgeport...';
+                input.style.padding = '5px';
+                input.style.width = '250px';
+                input.style.border = '1px solid #ccc';
+                input.style.borderRadius = '4px';
+
+                var resultsList = L.DomUtil.create('div', '', wrapper);
+                resultsList.style.display = 'none';
+                resultsList.style.position = 'absolute';
+                resultsList.style.top = '100%';
+                resultsList.style.left = '0';
+                resultsList.style.right = '0';
+                resultsList.style.backgroundColor = 'white';
+                resultsList.style.border = '1px solid #ccc';
+                resultsList.style.borderRadius = '4px';
+                resultsList.style.maxHeight = '200px';
+                resultsList.style.overflowY = 'auto';
+                resultsList.style.zIndex = '1000';
+
+                // Prevent map from moving when scrolling results
+                L.DomEvent.disableScrollPropagation(resultsList);
+                L.DomEvent.disableClickPropagation(resultsList);
+                L.DomEvent.disableClickPropagation(input);
+
+                var searchMarker;
+                
+                input.addEventListener('input', _.debounce(function(e) {
+                    if (input.value.length < 3) {
+                        resultsList.style.display = 'none';
+                        return;
+                    }
+
+                    // Focus search on Bridgeport area
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input.value + ' Bridgeport, Ohio')}&viewbox=-80.76,40.08,-80.73,40.06&bounded=1&limit=5`)
+                        .then(response => response.json())
+                        .then(data => {
+                            resultsList.innerHTML = '';
+                            if (data.length > 0) {
+                                data.forEach(result => {
+                                    var item = L.DomUtil.create('div', '', resultsList);
+                                    item.innerHTML = result.display_name;
+                                    item.style.padding = '5px';
+                                    item.style.cursor = 'pointer';
+                                    item.style.borderBottom = '1px solid #eee';
+                                    
+                                    item.addEventListener('mouseover', function() {
+                                        item.style.backgroundColor = '#f0f0f0';
+                                    });
+                                    
+                                    item.addEventListener('mouseout', function() {
+                                        item.style.backgroundColor = 'white';
+                                    });
+                                    
+                                    item.addEventListener('click', function() {
+                                        const lat = parseFloat(result.lat);
+                                        const lon = parseFloat(result.lon);
+                                        
+                                        // Remove existing marker if any
+                                        if (searchMarker) {
+                                            map.removeLayer(searchMarker);
+                                        }
+                                        
+                                        // Add marker at selected location
+                                        searchMarker = L.marker([lat, lon]).addTo(map);
+                                        
+                                        // Fly to location
+                                        map.flyTo([lat, lon], 18);
+                                        
+                                        // Clear results and input
+                                        resultsList.style.display = 'none';
+                                        input.value = result.display_name;
+                                    });
+                                });
+                                resultsList.style.display = 'block';
+                            } else {
+                                resultsList.innerHTML = '<div style="padding: 5px;">No results found</div>';
+                                resultsList.style.display = 'block';
+                            }
+                        });
+                }, 300));
+
+                // Hide results when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!wrapper.contains(e.target)) {
+                        resultsList.style.display = 'none';
+                    }
+                });
+
+                return container;
+            }
+        });
+        map.addControl(new searchControl());
+
+        // Add print control
+        var printControl = L.Control.extend({
+            options: {
+                position: 'topleft'
+            },
+            onAdd: function (map) {
+                var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                var button = L.DomUtil.create('a', '', container);
+                button.innerHTML = '🖨️';
+                button.href = '#';
+                button.title = 'Print map';
+                button.onclick = function(e) {
+                    e.preventDefault();
+                    window.print();
+                    return false;
+                };
+                return container;
+            }
+        });
+        map.addControl(new printControl());
+    </script>
+</body>
+</html>
